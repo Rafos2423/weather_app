@@ -1,0 +1,25 @@
+name: weather_app
+description: A new Flutter project.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.1.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  lottie: ^2.7.0
+  http: ^0.13.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/morning.gif
+    - assets/day.gif
+    - assets/evening.gif
+    - assets/night.gif
