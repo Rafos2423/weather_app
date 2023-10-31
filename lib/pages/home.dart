@@ -128,6 +128,7 @@ class NameState extends State<HomePage> {
                   return Container(
                     height: 80,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
                           width: 105,
@@ -140,19 +141,16 @@ class NameState extends State<HomePage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 20),
                         Container(
                           width: 175,
-                          child: Flexible(
-                            child: Text(
-                              weatherData[index].description,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.visible,
+                          child: Text(
+                            weatherData[index].description,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
                             ),
+                            overflow: TextOverflow.visible,
                           ),
                         ),
                         Container(

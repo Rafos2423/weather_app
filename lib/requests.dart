@@ -20,7 +20,7 @@ Future<(String temp, String weather)> fetchWeatherData() async {
 
   if (response.statusCode == 200) {
     final data = json.decode(response.body);
-    final double temperature = data['main']['temp'];
+    final dynamic temperature = data['main']['temp'];
     String weather = data['weather'][0]['description'];
 
     weather = "${weather[0].toUpperCase()}${weather.substring(1)}";
@@ -48,7 +48,7 @@ String takeNameOfDayTime() {
 
 Future<List<WeatherData>> fetchWeatherDataDay() async {
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
-  String cityName = 'Moscow';
+  String cityName = 'Paris';
   String units = 'metric'; // ед измерения - градусы
   String language = 'ru';
 
