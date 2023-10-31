@@ -48,7 +48,7 @@ String takeNameOfDayTime() {
 
 Future<List<WeatherData>> fetchWeatherDataDay() async {
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
-  String cityName = 'Paris';
+  String cityName = 'Moscow';
   String units = 'metric'; // ед измерения - градусы
   String language = 'ru';
 
