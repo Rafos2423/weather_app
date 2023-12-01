@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/requests.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:connectivity/connectivity.dart';
 
 void main() => runApp(const HomePage());
 
@@ -10,6 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class NameState extends State<HomePage> {
+  TextEditingController place = new TextEditingController();
   String temperature = "";
   String weatherType = "";
   String dayTime = takeNameOfDayTime();
@@ -18,13 +22,52 @@ class NameState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetchWeatherData().then((result) => setState(() {
-          temperature = result.$1;
-          weatherType = result.$2;
-        }));
-    fetchWeatherDataDay().then((result) => setState(() {
-          weatherData = result;
-        }));
+    _getLocation().then((placeInput) {
+      fetchWeatherData(placeInput).then((result) => setState(() {
+            temperature = result.$1;
+            weatherType = result.$2;
+            place.text = result.$3;
+          }));
+      fetchWeatherDataDay(placeInput).then((result) => setState(() {
+            weatherData = result;
+          }));
+      checkInternetConnection();
+    });
+  }
+
+  Future<void> checkInternetConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      _showInternetDialog();
+    }
+  }
+
+  void _showInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Отсутствует подключение к интернету'),
+          content: Text('Пожалуйста, подключитесь к интернету, чтобы продолжить использование приложения.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<String> _getLocation() async {
+    LocationPermission _ = await Geolocator.requestPermission();
+    Position position = await Geolocator.getCurrentPosition();
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    return placemarks[0].locality.toString();
   }
 
   @override
@@ -33,11 +76,11 @@ class NameState extends State<HomePage> {
       backgroundColor: Colors.blue,
       body: SafeArea(
         child: Column(mainAxisSize: MainAxisSize.max, children: [
-          const SizedBox(height: 90),
+          const SizedBox(height: 60),
           Center(
             child: Container(
               width: 380,
-              height: 185,
+              height: 210,
               decoration: BoxDecoration(
                 color: Colors.white54,
                 borderRadius: BorderRadius.circular(12.0),
@@ -49,14 +92,39 @@ class NameState extends State<HomePage> {
                   Row(
                     children: [
                       SizedBox(width: 20),
-                      Text(
-                        'Москва',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 40,
-                          fontWeight: FontWeight.w400,
+                      Expanded(
+                        child: TextField(
+                          controller: place,
+                          onSubmitted: (value) {
+                            String modifiedString = value
+                                .replaceAll(RegExp(r'[^\w\s]'), '')
+                                .replaceAll(RegExp(r'\s+'), '');
+                            fetchWeatherData(modifiedString)
+                                .then((result) => setState(() {
+                                      temperature = result.$1;
+                                      weatherType = result.$2;
+                                      place.text = result.$3;
+                                    }));
+                            fetchWeatherDataDay(modifiedString)
+                                .then((result) => setState(() {
+                                      weatherData = result;
+                                    }));
+                          },
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Ваш город:',
+                            hintStyle: TextStyle(color: Colors.white),
+                            counterText: "",
+                          ),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 40,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLength: 14,
                         ),
                       ),
+                      SizedBox(width: 20),
                     ],
                   ),
                   SizedBox(height: 5),
@@ -120,13 +188,13 @@ class NameState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(12.0),
               ),
               width: 380,
-              height: 270,
+              height: 260,
               child: ListView.builder(
                 scrollDirection: Axis.vertical,
                 itemCount: weatherData.length,
                 itemBuilder: (context, index) {
                   return Container(
-                    height: 80,
+                    height: 75,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -154,7 +222,7 @@ class NameState extends State<HomePage> {
                           ),
                         ),
                         Container(
-                          width: 40,
+                          width: 50,
                           child: Text(
                             "${weatherData[index].temperature}°",
                             style: TextStyle(

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-Future<(String temp, String weather)> fetchWeatherData() async {
+Future<(String temp, String weather, String place)> fetchWeatherData(String place) async {
+
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
-  String cityName = 'Moscow';
+  String cityName = place;
   String units = 'metric'; // ед измерения - градусы
   String cnt = '1'; // кол результатов (вывод 4 города Москвы без явного указания)
   String language = 'ru';
@@ -22,9 +23,10 @@ Future<(String temp, String weather)> fetchWeatherData() async {
     final data = json.decode(response.body);
     final dynamic temperature = data['main']['temp'];
     String weather = data['weather'][0]['description'];
+    String placeLocal = data['name'];
 
     weather = "${weather[0].toUpperCase()}${weather.substring(1)}";
-    return (temperature.toInt().toString(), weather);
+    return (temperature.toInt().toString(), weather, placeLocal);
   } else {
     throw Exception('Failed to fetch weather data: ${response.reasonPhrase}');
   }
@@ -46,9 +48,9 @@ String takeNameOfDayTime() {
   }
 }
 
-Future<List<WeatherData>> fetchWeatherDataDay() async {
+Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
-  String cityName = 'Moscow';
+  String cityName = place;
   String units = 'metric'; // ед измерения - градусы
   String language = 'ru';
 
