@@ -48,7 +48,8 @@ class NameState extends State<HomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Отсутствует подключение к интернету'),
-          content: Text('Пожалуйста, подключитесь к интернету, чтобы продолжить использование приложения.'),
+          content: Text(
+              'Пожалуйста, подключитесь к интернету, чтобы продолжить использование приложения.'),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
@@ -68,6 +69,30 @@ class NameState extends State<HomePage> {
     List<Placemark> placemarks =
         await placemarkFromCoordinates(position.latitude, position.longitude);
     return placemarks[0].locality.toString();
+  }
+
+  Widget buildWeatherInfo(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.blue,
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.blue,
+            fontSize: 26,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -193,48 +218,116 @@ class NameState extends State<HomePage> {
                 scrollDirection: Axis.vertical,
                 itemCount: weatherData.length,
                 itemBuilder: (context, index) {
-                  return Container(
-                    height: 75,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 105,
-                          child: Text(
-                            weatherData[index].weekDay,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w500,
+                  return InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              child: Container(
+                                padding: EdgeInsets.all(22),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      weatherData[index].fullWeekDay,
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(16.0),
+                                      child: Image(
+                                        image: AssetImage(
+                                            'assets/${weatherData[index].imageName}.jpg'),
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    SizedBox(height: 30),
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        buildWeatherInfo('Температура',
+                                            '${weatherData[index].temperature}°'),
+                                        SizedBox(
+                                            height:
+                                                10), 
+                                        buildWeatherInfo('Ощущается как',
+                                            '${weatherData[index].feelsLike}°'),
+                                        SizedBox(
+                                            height:
+                                                10), 
+                                        buildWeatherInfo('Скорость ветра',
+                                            '${weatherData[index].windSpeed}м/c'),
+                                        SizedBox(
+                                            height:
+                                                10), 
+                                        buildWeatherInfo('Влажность',
+                                            '${weatherData[index].humidity}%'),
+                                        SizedBox(
+                                            height:
+                                                10), 
+                                        buildWeatherInfo('Давление',
+                                            '${weatherData[index].pressure}мм.'),
+                                        SizedBox(
+                                            height:
+                                                5), 
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        height: 75,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 105,
+                              child: Text(
+                                weatherData[index].weekDay,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        Container(
-                          width: 175,
-                          child: Text(
-                            weatherData[index].description,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
+                            Container(
+                              width: 175,
+                              child: Text(
+                                weatherData[index].description,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.visible,
+                              ),
                             ),
-                            overflow: TextOverflow.visible,
-                          ),
-                        ),
-                        Container(
-                          width: 50,
-                          child: Text(
-                            "${weatherData[index].temperature}°",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w500,
+                            Container(
+                              width: 50,
+                              child: Text(
+                                "${weatherData[index].temperature}°",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
+                      ));
                 },
               ),
             ),

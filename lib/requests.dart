@@ -33,7 +33,7 @@ Future<(String temp, String weather, String place)> fetchWeatherData(String plac
 }
 
 String takeNameOfDayTime() {
-  DateTime now = DateTime.now().toUtc();
+  DateTime now = DateTime.now();
 
   if (now.hour >= 0 && now.hour < 6) {
     return 'night';
@@ -78,6 +78,7 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
               .toString();
 
       List<String> weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+      List<String> fullWeekDays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 
       String dayName = "";
       if (i == 0)
@@ -87,13 +88,29 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
       else
         dayName = weekDays[int.parse(weekDay) - 1];
 
+      String fullWeekDay = dayName.length > 2 ? dayName : fullWeekDays[int.parse(weekDay) - 1];
+
       String weather = forecast['weather'][0]['description'];
       weather = "${weather[0].toUpperCase()}${weather.substring(1)}";
 
       String temp = forecast['main']['temp'].toInt().toString();
+      String windSpeed = forecast['wind']['speed'].toString();
+      String feelsLike = forecast['main']['feels_like'].toInt().toString();
+      String humidity = forecast['main']['humidity'].toString();
+      String pressure = forecast['main']['pressure'].toString();
 
-      WeatherData weatherData = WeatherData(dayName, weather, temp);
+      String code = forecast['weather'][0]['id'].toString();
+      String imageName = "";
+      if (code.startsWith("5"))
+        imageName = "rain";
+      else if (code.startsWith("6"))
+        imageName = "snow";
+      else if (code == "800")
+        imageName = "shine";
+      else if (code.startsWith("8"))
+        imageName = "clouds";
 
+      WeatherData weatherData = WeatherData(dayName, fullWeekDay, weather, temp, windSpeed, feelsLike, humidity, pressure, imageName);
       weatherDataList.add(weatherData);
     }
 
@@ -105,8 +122,14 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
 
 class WeatherData {
   final String weekDay;
+  final String fullWeekDay;
   final String description;
   final String temperature;
-
-  WeatherData(this.weekDay, this.description, this.temperature);
+  final String windSpeed;
+  final String feelsLike;
+  final String humidity;
+  final String pressure;
+  final String imageName;
+  
+  WeatherData(this.weekDay, this.fullWeekDay, this.description, this.temperature, this.windSpeed, this.feelsLike, this.humidity, this.pressure, this.imageName);
 }
