@@ -101,7 +101,7 @@ class NameState extends State<HomePage> {
       backgroundColor: Colors.blue,
       body: SafeArea(
         child: Column(mainAxisSize: MainAxisSize.max, children: [
-          const SizedBox(height: 60),
+          const SizedBox(height: 40),
           Center(
             child: Container(
               width: 380,
@@ -152,7 +152,6 @@ class NameState extends State<HomePage> {
                       SizedBox(width: 20),
                     ],
                   ),
-                  SizedBox(height: 5),
                   Padding(
                     padding: EdgeInsets.only(left: 20, right: 20),
                     child: Row(
@@ -172,7 +171,7 @@ class NameState extends State<HomePage> {
                               weatherType,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 30,
+                                fontSize: 28,
                                 fontWeight: FontWeight.w500,
                               ),
                               overflow: TextOverflow.visible,
