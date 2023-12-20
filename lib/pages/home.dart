@@ -3,6 +3,7 @@ import 'package:weather_app/requests.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(const HomePage());
 
@@ -17,7 +18,8 @@ class NameState extends State<HomePage> {
   String temperature = "";
   String weatherType = "";
   String dayTime = takeNameOfDayTime();
-  List<WeatherData> weatherData = List.empty();
+  List<WeatherData> weatherDataDays = List.empty();
+  List<WeatherData> weatherDataHours = List.empty();
 
   @override
   void initState() {
@@ -29,7 +31,10 @@ class NameState extends State<HomePage> {
             place.text = result.$3;
           }));
       fetchWeatherDataDay(placeInput).then((result) => setState(() {
-            weatherData = result;
+            weatherDataDays = result;
+          }));
+      fetchWeatherHours(placeInput).then((result) => setState(() {
+            weatherDataHours = result;
           }));
       checkInternetConnection();
     });
@@ -79,7 +84,7 @@ class NameState extends State<HomePage> {
           label,
           style: TextStyle(
             color: Colors.blue,
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -87,7 +92,7 @@ class NameState extends State<HomePage> {
           value,
           style: TextStyle(
             color: Colors.blue,
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -105,7 +110,7 @@ class NameState extends State<HomePage> {
           Center(
             child: Container(
               width: 380,
-              height: 210,
+              height: 160,
               decoration: BoxDecoration(
                 color: Colors.white54,
                 borderRadius: BorderRadius.circular(12.0),
@@ -122,7 +127,7 @@ class NameState extends State<HomePage> {
                           controller: place,
                           onSubmitted: (value) {
                             String modifiedString = value
-                                .replaceAll(RegExp(r'[^\w\s]'), '')
+                                .replaceAll(RegExp(r'[^\w\sа-яёА-ЯЁ]'), '')
                                 .replaceAll(RegExp(r'\s+'), '');
                             fetchWeatherData(modifiedString)
                                 .then((result) => setState(() {
@@ -132,8 +137,17 @@ class NameState extends State<HomePage> {
                                     }));
                             fetchWeatherDataDay(modifiedString)
                                 .then((result) => setState(() {
-                                      weatherData = result;
+                                      weatherDataDays = result;
                                     }));
+                          },
+                          onTap: () {
+                            Clipboard.setData(
+                              ClipboardData(text: place.text),
+                            );
+                            place.selection = TextSelection(
+                              baseOffset: 0,
+                              extentOffset: place.text.length,
+                            );
                           },
                           decoration: InputDecoration(
                             border: InputBorder.none,
@@ -143,7 +157,7 @@ class NameState extends State<HomePage> {
                           ),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 40,
+                            fontSize: 30,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLength: 14,
@@ -160,18 +174,18 @@ class NameState extends State<HomePage> {
                           "$temperature°",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 80,
+                            fontSize: 50,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: 40),
+                        SizedBox(width: 30),
                         Flexible(
                           child: Center(
                             child: Text(
                               weatherType,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 28,
+                                fontSize: 24,
                                 fontWeight: FontWeight.w500,
                               ),
                               overflow: TextOverflow.visible,
@@ -185,11 +199,11 @@ class NameState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           Center(
             child: Container(
-              width: 220,
-              height: 220,
+              width: 160,
+              height: 160,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20.0),
@@ -203,7 +217,7 @@ class NameState extends State<HomePage> {
               ),
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           Center(
             child: Container(
               padding: const EdgeInsets.all(16.0),
@@ -212,10 +226,10 @@ class NameState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(12.0),
               ),
               width: 380,
-              height: 260,
+              height: 210,
               child: ListView.builder(
                 scrollDirection: Axis.vertical,
-                itemCount: weatherData.length,
+                itemCount: weatherDataDays.length,
                 itemBuilder: (context, index) {
                   return InkWell(
                       onTap: () {
@@ -230,10 +244,10 @@ class NameState extends State<HomePage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(
-                                      weatherData[index].fullWeekDay,
+                                      weatherDataDays[index].fullWeekDay,
                                       style: const TextStyle(
                                         color: Colors.blue,
-                                        fontSize: 30,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -242,7 +256,7 @@ class NameState extends State<HomePage> {
                                       borderRadius: BorderRadius.circular(16.0),
                                       child: Image(
                                         image: AssetImage(
-                                            'assets/${weatherData[index].imageName}.jpg'),
+                                            'assets/${weatherDataDays[index].imageName}.jpg'),
                                         fit: BoxFit.contain,
                                       ),
                                     ),
@@ -252,30 +266,20 @@ class NameState extends State<HomePage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         buildWeatherInfo('Температура',
-                                            '${weatherData[index].temperature}°'),
-                                        SizedBox(
-                                            height:
-                                                10), 
+                                            '${weatherDataDays[index].temperature}°'),
+                                        SizedBox(height: 10),
                                         buildWeatherInfo('Ощущается как',
-                                            '${weatherData[index].feelsLike}°'),
-                                        SizedBox(
-                                            height:
-                                                10), 
+                                            '${weatherDataDays[index].feelsLike}°'),
+                                        SizedBox(height: 10),
                                         buildWeatherInfo('Скорость ветра',
-                                            '${weatherData[index].windSpeed}м/c'),
-                                        SizedBox(
-                                            height:
-                                                10), 
+                                            '${weatherDataDays[index].windSpeed}м/c'),
+                                        SizedBox(height: 10),
                                         buildWeatherInfo('Влажность',
-                                            '${weatherData[index].humidity}%'),
-                                        SizedBox(
-                                            height:
-                                                10), 
+                                            '${weatherDataDays[index].humidity}%'),
+                                        SizedBox(height: 10),
                                         buildWeatherInfo('Давление',
-                                            '${weatherData[index].pressure}мм.'),
-                                        SizedBox(
-                                            height:
-                                                5), 
+                                            '${weatherDataDays[index].pressure}мм.'),
+                                        SizedBox(height: 5),
                                       ],
                                     )
                                   ],
@@ -286,46 +290,167 @@ class NameState extends State<HomePage> {
                         );
                       },
                       child: Container(
-                        height: 75,
+                        height: 60,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Container(
                               width: 105,
                               child: Text(
-                                weatherData[index].weekDay,
+                                weatherDataDays[index].weekDay,
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 26,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                             Container(
-                              width: 175,
+                              width: 200,
                               child: Text(
-                                weatherData[index].description,
+                                weatherDataDays[index].description,
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 overflow: TextOverflow.visible,
                               ),
                             ),
                             Container(
-                              width: 50,
+                              width: 40,
                               child: Text(
-                                "${weatherData[index].temperature}°",
+                                "${weatherDataDays[index].temperature}°",
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 26,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                           ],
                         ),
+                      ));
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white54,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              width: 380,
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: weatherDataHours.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              child: Container(
+                                padding: EdgeInsets.all(22),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      weatherDataHours[index].time,
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(16.0),
+                                      child: Image(
+                                        image: AssetImage(
+                                            'assets/${weatherDataHours[index].imageName}.jpg'),
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    SizedBox(height: 30),
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        buildWeatherInfo('Температура',
+                                            '${weatherDataHours[index].temperature}°'),
+                                        SizedBox(height: 10),
+                                        buildWeatherInfo('Ощущается как',
+                                            '${weatherDataHours[index].feelsLike}°'),
+                                        SizedBox(height: 10),
+                                        buildWeatherInfo('Скорость ветра',
+                                            '${weatherDataHours[index].windSpeed}м/c'),
+                                        SizedBox(height: 10),
+                                        buildWeatherInfo('Влажность',
+                                            '${weatherDataHours[index].humidity}%'),
+                                        SizedBox(height: 10),
+                                        buildWeatherInfo('Давление',
+                                            '${weatherDataHours[index].pressure}мм.'),
+                                        SizedBox(height: 5),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 180,
+                            child: Column(
+                              children: [
+                                Text(
+                                  weatherDataHours[index].time,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Divider(
+                                  height: 0,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  "${weatherDataHours[index].description}",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.visible,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  "${weatherDataHours[index].temperature}°",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.visible,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 15),
+                        ],
                       ));
                 },
               ),

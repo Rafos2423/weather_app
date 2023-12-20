@@ -48,6 +48,20 @@ String takeNameOfDayTime() {
   }
 }
 
+String takeTimeName(DateTime time) {
+  List<String> weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+
+  String dayName = "";
+  if (time.day == DateTime.now().toUtc().day)
+    dayName = "Сегодня";
+  else if (time.day == DateTime.now().toUtc().add(Duration(days: 1)).day)
+    dayName = "Завтра";
+  else
+    dayName = weekDays[time.weekday - 1];
+
+  return "$dayName ${time.toUtc().hour}:00";
+}
+
 Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
   String cityName = place;
@@ -110,7 +124,62 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
       else if (code.startsWith("8"))
         imageName = "clouds";
 
-      WeatherData weatherData = WeatherData(dayName, fullWeekDay, weather, temp, windSpeed, feelsLike, humidity, pressure, imageName);
+      WeatherData weatherData = WeatherData(weekDay: dayName, fullWeekDay: fullWeekDay, description: weather, temperature: temp, windSpeed: windSpeed, feelsLike: feelsLike, humidity: humidity, pressure: pressure, imageName: imageName);
+      weatherDataList.add(weatherData);
+    }
+
+    return weatherDataList;
+  } else {
+    throw Exception('Failed to fetch weather data');
+  }
+}
+
+Future<List<WeatherData>> fetchWeatherHours(String place) async {
+  String apiKey = '6534518d0a8fcab85184208ace32b936';
+  String cityName = place;
+  String units = 'metric';
+  String language = 'ru';
+
+  final Uri uri = Uri.https('api.openweathermap.org', 'data/2.5/forecast', {
+    'q': cityName,
+    'units': units,
+    'appid': apiKey,
+    'lang': language,
+  });
+
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> jsonData = jsonDecode(response.body);
+
+    List<dynamic> forecastData = jsonData['list'];
+    List<WeatherData> weatherDataList = [];
+
+    for (var i = 0; i < 40; i++) {
+      Map<String, dynamic> forecast = forecastData[i];
+
+      String weather = forecast['weather'][0]['description'];
+      String time = forecast['dt_txt'];
+
+      time = takeTimeName(DateTime.parse(time));
+      String temp = forecast['main']['temp'].toInt().toString();
+      String windSpeed = forecast['wind']['speed'].toString();
+      String feelsLike = forecast['main']['feels_like'].toInt().toString();
+      String humidity = forecast['main']['humidity'].toString();
+      String pressure = forecast['main']['pressure'].toString();
+
+      String code = forecast['weather'][0]['id'].toString();
+      String imageName = "";
+      if (code.startsWith("5"))
+        imageName = "rain";
+      else if (code.startsWith("6"))
+        imageName = "snow";
+      else if (code == "800")
+        imageName = "shine";
+      else if (code.startsWith("8"))
+        imageName = "clouds";
+
+      WeatherData weatherData = WeatherData(time: time, description: weather, temperature: temp, windSpeed: windSpeed, feelsLike: feelsLike, humidity: humidity, pressure: pressure, imageName: imageName);
       weatherDataList.add(weatherData);
     }
 
@@ -121,6 +190,7 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
 }
 
 class WeatherData {
+  final String time;
   final String weekDay;
   final String fullWeekDay;
   final String description;
@@ -131,5 +201,16 @@ class WeatherData {
   final String pressure;
   final String imageName;
   
-  WeatherData(this.weekDay, this.fullWeekDay, this.description, this.temperature, this.windSpeed, this.feelsLike, this.humidity, this.pressure, this.imageName);
+    WeatherData({
+    this.time = '',
+    this.weekDay = '',
+    this.fullWeekDay = '',
+    required this.description,
+    required this.temperature,
+    required this.windSpeed,
+    required this.feelsLike,
+    required this.humidity,
+    required this.pressure,
+    required this.imageName,
+  });
 }
