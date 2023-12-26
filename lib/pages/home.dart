@@ -106,11 +106,11 @@ class NameState extends State<HomePage> {
       backgroundColor: Colors.blue,
       body: SafeArea(
         child: Column(mainAxisSize: MainAxisSize.max, children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 20),
           Center(
             child: Container(
               width: 380,
-              height: 160,
+              height: 185,
               decoration: BoxDecoration(
                 color: Colors.white54,
                 borderRadius: BorderRadius.circular(12.0),
@@ -118,7 +118,6 @@ class NameState extends State<HomePage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  SizedBox(height: 5),
                   Row(
                     children: [
                       SizedBox(width: 20),
@@ -167,7 +166,7 @@ class NameState extends State<HomePage> {
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20),
+                    padding: EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 10),
                     child: Row(
                       children: [
                         Text(
@@ -344,7 +343,7 @@ class NameState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(12.0),
               ),
               width: 380,
-              height: 160,
+              height: 175,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: weatherDataHours.length,
@@ -362,7 +361,7 @@ class NameState extends State<HomePage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(
-                                      weatherDataHours[index].time,
+                                      weatherDataHours[index].fullWeekDay,
                                       style: const TextStyle(
                                         color: Colors.blue,
                                         fontSize: 20,
@@ -378,7 +377,7 @@ class NameState extends State<HomePage> {
                                         fit: BoxFit.contain,
                                       ),
                                     ),
-                                    SizedBox(height: 30),
+                                    SizedBox(height: 10),
                                     Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -410,7 +409,7 @@ class NameState extends State<HomePage> {
                       child: Row(
                         children: [
                           Container(
-                            width: 180,
+                            width: 200,
                             child: Column(
                               children: [
                                 Text(
@@ -436,7 +435,6 @@ class NameState extends State<HomePage> {
                                   ),
                                   overflow: TextOverflow.visible,
                                 ),
-                                SizedBox(height: 10),
                                 Text(
                                   "${weatherDataHours[index].temperature}°",
                                   style: TextStyle(

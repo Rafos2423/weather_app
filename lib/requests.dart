@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-Future<(String temp, String weather, String place)> fetchWeatherData(String place) async {
-
+Future<(String temp, String weather, String place)> fetchWeatherData(
+    String place) async {
   String apiKey = 'b0451ff37db30a84fd165a651194a814';
   String cityName = place;
   String units = 'metric'; // ед измерения - градусы
-  String cnt = '1'; // кол результатов (вывод 4 города Москвы без явного указания)
+  String cnt =
+      '1'; // кол результатов (вывод 4 города Москвы без явного указания)
   String language = 'ru';
 
   final Uri uri = Uri.https('api.openweathermap.org', '/data/2.5/weather', {
@@ -48,7 +49,7 @@ String takeNameOfDayTime() {
   }
 }
 
-String takeTimeName(DateTime time) {
+(String, String) takeTimeName(DateTime time) {
   List<String> weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 
   String dayName = "";
@@ -59,7 +60,7 @@ String takeTimeName(DateTime time) {
   else
     dayName = weekDays[time.weekday - 1];
 
-  return "$dayName ${time.toUtc().hour}:00";
+  return ("$dayName, ${time.day}.${time.month} ${time.toUtc().hour}:00", "$dayName ${time.toUtc().hour}:00");
 }
 
 Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
@@ -85,14 +86,22 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
 
     for (var i = 0; i < 5; i++) {
       Map<String, dynamic> forecast = forecastData[i * 8];
-      String weekDay =
-          DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000)
-              .toUtc()
-              .weekday
-              .toString();
+
+      DateTime date =
+          DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000);
+
+      String weekDay = date.weekday.toString();
 
       List<String> weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
-      List<String> fullWeekDays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+      List<String> fullWeekDays = [
+        'Понедельник',
+        'Вторник',
+        'Среда',
+        'Четверг',
+        'Пятница',
+        'Суббота',
+        'Воскресенье'
+      ];
 
       String dayName = "";
       if (i == 0)
@@ -102,7 +111,9 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
       else
         dayName = weekDays[int.parse(weekDay) - 1];
 
-      String fullWeekDay = dayName.length > 2 ? dayName : fullWeekDays[int.parse(weekDay) - 1];
+      String fullWeekDay = dayName.length > 2
+          ? "$dayName, ${date.day}.${date.month}"
+          : "${fullWeekDays[int.parse(weekDay) - 1]}, ${date.day}.${date.month}";
 
       String weather = forecast['weather'][0]['description'];
       weather = "${weather[0].toUpperCase()}${weather.substring(1)}";
@@ -121,10 +132,18 @@ Future<List<WeatherData>> fetchWeatherDataDay(String place) async {
         imageName = "snow";
       else if (code == "800")
         imageName = "shine";
-      else if (code.startsWith("8"))
-        imageName = "clouds";
+      else if (code.startsWith("8")) imageName = "clouds";
 
-      WeatherData weatherData = WeatherData(weekDay: dayName, fullWeekDay: fullWeekDay, description: weather, temperature: temp, windSpeed: windSpeed, feelsLike: feelsLike, humidity: humidity, pressure: pressure, imageName: imageName);
+      WeatherData weatherData = WeatherData(
+          weekDay: dayName,
+          fullWeekDay: fullWeekDay,
+          description: weather,
+          temperature: temp,
+          windSpeed: windSpeed,
+          feelsLike: feelsLike,
+          humidity: humidity,
+          pressure: pressure,
+          imageName: imageName);
       weatherDataList.add(weatherData);
     }
 
@@ -159,9 +178,9 @@ Future<List<WeatherData>> fetchWeatherHours(String place) async {
       Map<String, dynamic> forecast = forecastData[i];
 
       String weather = forecast['weather'][0]['description'];
-      String time = forecast['dt_txt'];
+      String time = forecast['dt_txt']; 
+      var resultTime = takeTimeName(DateTime.parse(time));
 
-      time = takeTimeName(DateTime.parse(time));
       String temp = forecast['main']['temp'].toInt().toString();
       String windSpeed = forecast['wind']['speed'].toString();
       String feelsLike = forecast['main']['feels_like'].toInt().toString();
@@ -176,10 +195,18 @@ Future<List<WeatherData>> fetchWeatherHours(String place) async {
         imageName = "snow";
       else if (code == "800")
         imageName = "shine";
-      else if (code.startsWith("8"))
-        imageName = "clouds";
+      else if (code.startsWith("8")) imageName = "clouds";
 
-      WeatherData weatherData = WeatherData(time: time, description: weather, temperature: temp, windSpeed: windSpeed, feelsLike: feelsLike, humidity: humidity, pressure: pressure, imageName: imageName);
+      WeatherData weatherData = WeatherData(
+          time: resultTime.$2,
+          fullWeekDay: resultTime.$1,
+          description: weather,
+          temperature: temp,
+          windSpeed: windSpeed,
+          feelsLike: feelsLike,
+          humidity: humidity,
+          pressure: pressure,
+          imageName: imageName);
       weatherDataList.add(weatherData);
     }
 
@@ -200,11 +227,11 @@ class WeatherData {
   final String humidity;
   final String pressure;
   final String imageName;
-  
-    WeatherData({
+
+  WeatherData({
     this.time = '',
     this.weekDay = '',
-    this.fullWeekDay = '',
+    required this.fullWeekDay,
     required this.description,
     required this.temperature,
     required this.windSpeed,
